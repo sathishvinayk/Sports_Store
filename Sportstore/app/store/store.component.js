@@ -10,14 +10,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("@angular/core");
 var product_repository_1 = require("../model/product.repository");
+var cart_model_1 = require("../model/cart.model");
+var router_1 = require("@angular/router");
 var StoreComponent = (function () {
-    function StoreComponent(repository) {
+    function StoreComponent(repository, cart, router) {
         this.repository = repository;
+        this.cart = cart;
+        this.router = router;
         this.selectedCategory = null;
+        this.productsPerPage = 4;
+        this.selectedPage = 1;
     }
     Object.defineProperty(StoreComponent.prototype, "products", {
         get: function () {
-            return this.repository.getProducts(this.selectedCategory);
+            var pageIndex = (this.selectedPage - 1) * this.productsPerPage;
+            return this.repository.getProducts(this.selectedCategory)
+                .slice(pageIndex, pageIndex + this.productsPerPage);
         },
         enumerable: true,
         configurable: true
@@ -32,13 +40,31 @@ var StoreComponent = (function () {
     StoreComponent.prototype.changeCategory = function (newCategory) {
         this.selectedCategory = newCategory;
     };
+    StoreComponent.prototype.changePage = function (newPage) {
+        this.selectedPage = newPage;
+    };
+    StoreComponent.prototype.changePageSize = function (newSize) {
+        this.productsPerPage = Number(newSize);
+        this.changePage(1);
+    };
+    Object.defineProperty(StoreComponent.prototype, "pageCount", {
+        get: function () {
+            return Math.ceil(this.repository.getProducts(this.selectedCategory).length / this.productsPerPage);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    StoreComponent.prototype.addProductToCart = function (product) {
+        this.cart.addLine(product);
+        this.router.navigateByUrl("/cart");
+    };
     StoreComponent = __decorate([
         core_1.Component({
             selector: "store",
             moduleId: module.id,
             templateUrl: "store.component.html"
         }), 
-        __metadata('design:paramtypes', [product_repository_1.ProductRepository])
+        __metadata('design:paramtypes', [product_repository_1.ProductRepository, cart_model_1.Cart, router_1.Router])
     ], StoreComponent);
     return StoreComponent;
 }());
